@@ -1,7 +1,18 @@
-import { PrismaClient, PermissionName } from '@prisma/client';
+import { PrismaClient, PermissionName } from '../generated/prisma/client';
+import { PrismaMariaDb } from '@prisma/adapter-mariadb';
 import bcrypt from 'bcrypt';
+import 'dotenv/config';
 
-const prisma = new PrismaClient();
+const adapter = new PrismaMariaDb({
+  host: process.env.DB_HOST || 'localhost',
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+  port: Number(process.env.DB_PORT) || 3306,
+  connectionLimit: 1,
+});
+
+const prisma = new PrismaClient({ adapter });
 
 async function main() {
   const permissions = [
@@ -32,14 +43,14 @@ async function main() {
     throw new Error('Permissão ADMIN não encontrada');
   }
 
-  const hashedPassword = await bcrypt.hash('root', 10);
+  const hashedPassword = await bcrypt.hash('root123', 10);
 
   const rootUser = await prisma.user.upsert({
-    where: { email: 'root@local' },
-    update: { name: 'root' },
+    where: { email: 'teste@gmail.com' },
+    update: { name: 'teste' },
     create: {
-      name: 'root',
-      email: 'root@local',
+      name: 'teste',
+      email: 'teste@gmail.com',
       password: hashedPassword,
     },
   });
