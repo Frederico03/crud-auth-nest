@@ -11,7 +11,7 @@ export class LoginDto {
   email: string;
 
   @ApiProperty({
-    example: 'password123',
+    example: 'password',
     description: 'The password of the user',
   })
   @IsString({ message: 'A senha deve ser uma string' })

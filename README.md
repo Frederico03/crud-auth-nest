@@ -46,73 +46,169 @@ A API possui documentação interativa através do Swagger. Você pode acessar, 
 
 ## 🔐 Níveis de Permissão
 
-| Cargo | Descrição |
-| :--- | :--- |
-| **ADMIN** | Gestão total (Usuários e Artigos). Pode alterar cargos de outros usuários. |
-| **EDITOR** | Gestão total de Artigos. Não possui acesso à gestão de usuários. |
-| **READER** | Acesso de leitura apenas para Artigos. |
+- **ADMIN**: Gestão total (Usuários e Artigos). Pode alterar cargos de outros usuários.
+- **EDITOR**: Gestão total de Artigos. Sem acesso à gestão de usuários.
+- **READER**: Acesso de leitura apenas para Artigos.
 
 ---
 
-## 📡 Endpoints Principais e Fluxo de Uso
+## 📡 Endpoints: Documentação Detalhada
 
-### 1. Autenticação (Login)
-Para qualquer operação protegida, você deve obter um token JWT.
+### 1. Autenticação
 
-**Fluxo:**
-1. Chame o endpoint de login.
-2. Utilize o `access_token` retornado no header `Authorization: Bearer <token>`.
+#### [POST] `/auth/login`
+Gera o token JWT para acesso aos endpoints protegidos.
 
-**cURL:**
-```bash
-curl -X POST http://localhost:3000/auth/login \
-     -H "Content-Type: application/json" \
-     -d '{"email": "user@example.com", "password": "password"}'
-```
+- **Permissão:** Público
+- **Payload Swagger:**
+  ```json
+  {
+    "email": "user@example.com",
+    "password": "password"
+  }
+  ```
+- **cURL:**
+  ```bash
+  curl -X POST http://localhost:3000/auth/login \
+       -H "Content-Type: application/json" \
+       -d '{"email": "user@example.com", "password": "password"}'
+  ```
 
-### 2. Gestão de Cargos (Admin Only)
-Endpoint para alterar a permissão de um usuário entre `READER` e `EDITOR`.
+---
 
-**cURL:**
-```bash
-curl -X PATCH http://localhost:3000/users/2/role \
-     -H "Authorization: Bearer <TOKEN_ADMIN>" \
-     -H "Content-Type: application/json" \
-     -d '{"role": "EDITOR"}'
-```
+### 2. Gestão de Usuários
+
+#### [POST] `/users`
+Cria um novo usuário.
+- **Permissão:** `ADMIN`
+- **Payload Swagger:**
+  ```json
+  {
+    "name": "João Silva",
+    "email": "joao@example.com",
+    "password": "password123"
+  }
+  ```
+- **cURL:**
+  ```bash
+  curl -X POST http://localhost:3000/users \
+       -H "Authorization: Bearer <TOKEN>" \
+       -H "Content-Type: application/json" \
+       -d '{"name": "João Silva", "email": "joao@example.com", "password": "password123"}'
+  ```
+
+#### [GET] `/users`
+Lista todos os usuários.
+- **Permissão:** `ADMIN`
+- **cURL:** `curl -H "Authorization: Bearer <TOKEN>" http://localhost:3000/users`
+
+#### [GET] `/users/{id}`
+Busca detalhes de um usuário.
+- **Permissão:** `ADMIN` ou o próprio usuário (`SELF`)
+- **ID Swagger:** `2`
+- **cURL:** `curl -H "Authorization: Bearer <TOKEN>" http://localhost:3000/users/2`
+
+#### [PATCH] `/users/{id}`
+Atualiza dados do usuário.
+- **Permissão:** `ADMIN` ou o próprio usuário (`SELF`)
+- **Payload Swagger:**
+  ```json
+  {
+    "name": "João Silva Atualizado",
+    "password": "newpassword123"
+  }
+  ```
+- **cURL:**
+  ```bash
+  curl -X PATCH http://localhost:3000/users/2 \
+       -H "Authorization: Bearer <TOKEN>" \
+       -H "Content-Type: application/json" \
+       -d '{"name": "João Silva Atualizado"}'
+  ```
+
+#### [DELETE] `/users/{id}`
+Remove um usuário e seus dados vinculados (Artigos/Permissões).
+- **Permissão:** `ADMIN` ou o próprio usuário (`SELF`)
+- **cURL:** `curl -X DELETE -H "Authorization: Bearer <TOKEN>" http://localhost:3000/users/2`
+
+#### [PATCH] `/users/{id}/role`
+Altera o cargo/permissão de um usuário entre `READER` e `EDITOR`.
+- **Permissão:** `ADMIN`
+- **Payload Swagger:**
+  ```json
+  {
+    "role": "EDITOR"
+  }
+  ```
+- **cURL:**
+  ```bash
+  curl -X PATCH http://localhost:3000/users/2/role \
+       -H "Authorization: Bearer <TOKEN_ADMIN>" \
+       -H "Content-Type: application/json" \
+       -d '{"role": "EDITOR"}'
+  ```
+
+---
 
 ### 3. Gestão de Artigos
-Operações de CRUD para artigos.
 
-**Fluxo de Criação (Admin/Editor):**
-```bash
-curl -X POST http://localhost:3000/articles \
-     -H "Authorization: Bearer <TOKEN_JWT>" \
-     -H "Content-Type: application/json" \
-     -d '{"title": "Meu Primeiro Artigo", "content": "Conteúdo de alta qualidade."}'
-```
+#### [POST] `/articles`
+Cria um novo artigo.
+- **Permissão:** `ADMIN`, `EDITOR`
+- **Payload Swagger:**
+  ```json
+  {
+    "title": "Título do Artigo",
+    "content": "Conteúdo detalhado do artigo."
+  }
+  ```
+- **cURL:**
+  ```bash
+  curl -X POST http://localhost:3000/articles \
+       -H "Authorization: Bearer <TOKEN>" \
+       -H "Content-Type: application/json" \
+       -d '{"title": "Título do Artigo", "content": "Conteúdo detalhado."}'
+  ```
 
-**Listagem (Qualquer usuário logado):**
-```bash
-curl -X GET http://localhost:3000/articles \
-     -H "Authorization: Bearer <TOKEN_JWT>"
-```
+#### [GET] `/articles`
+Lista todos os artigos.
+- **Permissão:** `ADMIN`, `EDITOR`, `READER`
+- **cURL:** `curl -H "Authorization: Bearer <TOKEN>" http://localhost:3000/articles`
+
+#### [GET] `/articles/{id}`
+Busca um artigo específico.
+- **Permissão:** `ADMIN`, `EDITOR`, `READER`
+- **cURL:** `curl -H "Authorization: Bearer <TOKEN>" http://localhost:3000/articles/1`
+
+#### [PATCH] `/articles/{id}`
+Atualiza um artigo.
+- **Permissão:** `ADMIN`, `EDITOR`
+- **Payload Swagger:**
+  ```json
+  {
+    "title": "Novo Título",
+    "content": "Conteúdo atualizado."
+  }
+  ```
+- **cURL:**
+  ```bash
+  curl -X PATCH http://localhost:3000/articles/1 \
+       -H "Authorization: Bearer <TOKEN>" \
+       -H "Content-Type: application/json" \
+       -d '{"title": "Novo Título"}'
+  ```
+
+#### [DELETE] `/articles/{id}`
+Remove um artigo.
+- **Permissão:** `ADMIN`, `EDITOR`
+- **cURL:** `curl -X DELETE -H "Authorization: Bearer <TOKEN>" http://localhost:3000/articles/1`
 
 ---
 
 ## 🧪 Testes Automatizados
 
-O projeto conta com uma suíte de testes unitários e de integração (E2E) utilizando **Jest**.
-
-**Rodar testes unitários:**
-```bash
-npm run test
-```
-
-**Rodar testes E2E (Simulação de chamadas reais e permissões):**
-```bash
-npm run test:e2e
-```
+**Unitários:** `npm run test`
+**E2E (RBAC Verification):** `npm run test:e2e`
 
 ## 📄 Licença
 
