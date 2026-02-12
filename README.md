@@ -1,98 +1,119 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# CRUD Auth NestJS - Sistema de Gestão de Artigos e Usuários
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Este é um projeto robusto desenvolvido com **NestJS**, **Prisma**, e **MySQL/MariaDB**, focado em autenticação e controle de acesso baseado em cargos (RBAC).
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## 🚀 Requisitos Mínimos
 
-## Description
+- **Node.js** v18+
+- **Docker** e **Docker Compose**
+- **NPM** ou **Yarn**
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## 🛠️ Instalação e Bootstrap
 
-## Project setup
+O projeto está configurado para subir completamente usando Docker, o que inclui o banco de dados e a execução automática de migrations e seeds (permissões e usuário root).
 
+1. **Clonar o repositório:**
+   ```bash
+   git clone https://github.com/Frederico03/crud-auth-nest.git
+   cd crud-auth-nest
+   ```
+
+2. **Configurar variáveis de ambiente:**
+   Copie o arquivo `.env.example` para `.env` e ajuste se necessário (o padrão já funciona com Docker).
+   ```bash
+   cp .env.example .env
+   ```
+
+3. **Subir os containers:**
+   ```bash
+   docker compose up --build
+   ```
+
+Este comando irá:
+- Iniciar o banco MySQL/MariaDB na porta **3307**.
+- Executar o `prisma generate` para gerar o cliente.
+- Executar o `prisma migrate` para criar as tabelas.
+- Executar o `seed.ts` para criar o usuário root (`user@example.com` / `password`) e as permissões padrão.
+- Iniciar a aplicação na porta **3000**.
+
+## 📖 Documentação da API (Swagger)
+
+A API possui documentação interativa através do Swagger. Você pode acessar, visualizar e testar todos os endpoints em:
+
+🔗 **`http://localhost:3000/api`**
+
+---
+
+## 🔐 Níveis de Permissão
+
+| Cargo | Descrição |
+| :--- | :--- |
+| **ADMIN** | Gestão total (Usuários e Artigos). Pode alterar cargos de outros usuários. |
+| **EDITOR** | Gestão total de Artigos. Não possui acesso à gestão de usuários. |
+| **READER** | Acesso de leitura apenas para Artigos. |
+
+---
+
+## 📡 Endpoints Principais e Fluxo de Uso
+
+### 1. Autenticação (Login)
+Para qualquer operação protegida, você deve obter um token JWT.
+
+**Fluxo:**
+1. Chame o endpoint de login.
+2. Utilize o `access_token` retornado no header `Authorization: Bearer <token>`.
+
+**cURL:**
 ```bash
-$ npm install
+curl -X POST http://localhost:3000/auth/login \
+     -H "Content-Type: application/json" \
+     -d '{"email": "user@example.com", "password": "password"}'
 ```
 
-## Compile and run the project
+### 2. Gestão de Cargos (Admin Only)
+Endpoint para alterar a permissão de um usuário entre `READER` e `EDITOR`.
 
+**cURL:**
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+curl -X PATCH http://localhost:3000/users/2/role \
+     -H "Authorization: Bearer <TOKEN_ADMIN>" \
+     -H "Content-Type: application/json" \
+     -d '{"role": "EDITOR"}'
 ```
 
-## Run tests
+### 3. Gestão de Artigos
+Operações de CRUD para artigos.
 
+**Fluxo de Criação (Admin/Editor):**
 ```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+curl -X POST http://localhost:3000/articles \
+     -H "Authorization: Bearer <TOKEN_JWT>" \
+     -H "Content-Type: application/json" \
+     -d '{"title": "Meu Primeiro Artigo", "content": "Conteúdo de alta qualidade."}'
 ```
 
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
+**Listagem (Qualquer usuário logado):**
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+curl -X GET http://localhost:3000/articles \
+     -H "Authorization: Bearer <TOKEN_JWT>"
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+---
 
-## Resources
+## 🧪 Testes Automatizados
 
-Check out a few resources that may come in handy when working with NestJS:
+O projeto conta com uma suíte de testes unitários e de integração (E2E) utilizando **Jest**.
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+**Rodar testes unitários:**
+```bash
+npm run test
+```
 
-## Support
+**Rodar testes E2E (Simulação de chamadas reais e permissões):**
+```bash
+npm run test:e2e
+```
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+## 📄 Licença
 
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+Este projeto está sob a licença [MIT](LICENSE).
