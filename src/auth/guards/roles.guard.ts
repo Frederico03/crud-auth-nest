@@ -5,7 +5,7 @@ import { PermissionName } from "../../../generated/prisma/client";
 
 @Injectable()
 export class RolesGuard implements CanActivate {
-  constructor(private reflector: Reflector) {}
+  constructor(private reflector: Reflector) { }
 
   canActivate(context: ExecutionContext): boolean {
     const requiredRoles = this.reflector.getAllAndOverride<(PermissionName | 'SELF')[]>(ROLES_KEY, [
@@ -18,7 +18,7 @@ export class RolesGuard implements CanActivate {
     }
 
     const { user, params } = context.switchToHttp().getRequest();
-    
+
     // 1. Check if user is ADMIN
     const isAdmin = user.roles?.includes(PermissionName.ADMIN);
     const hasAdminRequirement = requiredRoles.includes(PermissionName.ADMIN);
