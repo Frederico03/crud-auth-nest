@@ -1,3 +1,5 @@
+# CASO SEJA WINDOWS, OPTE POR RODAR EM WSL #
+
 # CRUD Auth NestJS - Sistema de Gestão de Artigos e Usuários
 
 Este é um projeto robusto desenvolvido com **NestJS**, **Prisma**, e **MySQL/MariaDB**, focado em autenticação e controle de acesso baseado em cargos (RBAC).
