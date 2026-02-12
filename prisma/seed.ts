@@ -43,14 +43,14 @@ async function main() {
     throw new Error('Permissão ADMIN não encontrada');
   }
 
-  const hashedPassword = await bcrypt.hash('root123', 10);
+  const hashedPassword = await bcrypt.hash('password', 10);
 
   const rootUser = await prisma.user.upsert({
-    where: { email: 'teste@gmail.com' },
-    update: { name: 'teste' },
+    where: { email: 'user@example.com' },
+    update: { name: 'user' },
     create: {
-      name: 'teste',
-      email: 'teste@gmail.com',
+      name: 'user',
+      email: 'user@example.com',
       password: hashedPassword,
     },
   });

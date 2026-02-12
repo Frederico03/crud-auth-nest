@@ -9,7 +9,7 @@ services:
       MYSQL_USER: ${DB_USER:-crud_user}
       MYSQL_PASSWORD: ${DB_PASSWORD:-crud_password}
     ports:
-      - "${DB_PORT:-3306}:3306"
+      - "${DB_PORT:-3307}:3306"
     volumes:
       - mysql_data:/var/lib/mysql
       - ./prisma/init.sql:/docker-entrypoint-initdb.d/init.sql
@@ -48,7 +48,7 @@ services:
       - /app/node_modules
     networks:
       - crud-network
-    command: sh -c "npm install && npm run prisma:generate && npx prisma migrate deploy && npx prisma db seed && npm run start:dev"
+    command: sh -c "npx prisma migrate deploy && echo 'Starting seed...' && npx prisma db seed && echo 'Seed finished!' && npm run start:dev"
 
 volumes:
   mysql_data:
